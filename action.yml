@@ -1,0 +1,17 @@
+name: "Setup Nomad"
+description: "Install a specific version of HashiCorp Nomad and add it to the PATH"
+author: "Lucas Melin"
+branding:
+  icon: "archive"
+  color: "green"
+inputs:
+  version:
+    required: true
+    description: "The Nomad version to install"
+    default: "latest"
+outputs:
+  nomad-version:
+    description: "The version of HashiCorp Nomad that was installed."
+runs:
+  using: "node16"
+  main: "dist/index.js"
