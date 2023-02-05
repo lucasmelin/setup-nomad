@@ -1,8 +1,10 @@
 import * as utils from '../src/installer'
 import * as cp from 'child_process'
-import {expect, test, jest} from '@jest/globals'
+import * as io from '@actions/io'
+import {expect, test, jest, beforeEach, afterAll} from '@jest/globals'
 import {getLatestVersion} from '../src/main'
 import path from 'path'
+import {Release} from '../src/release'
 
 const cachePath = path.join(__dirname, 'CACHE')
 const tempPath = path.join(__dirname, 'TEMP')
@@ -10,9 +12,21 @@ const tempPath = path.join(__dirname, 'TEMP')
 process.env['RUNNER_TEMP'] = tempPath
 process.env['RUNNER_TOOL_CACHE'] = cachePath
 
+beforeEach(async function () {
+  await io.rmRF(cachePath)
+  await io.rmRF(tempPath)
+  await io.mkdirP(cachePath)
+  await io.mkdirP(tempPath)
+})
+
+afterAll(async function () {
+  await io.rmRF(tempPath)
+  await io.rmRF(cachePath)
+})
+
 test('the latest version is returned', async () => {
   jest.spyOn(utils, 'getNomadIndex').mockImplementation(async () => {
-    return {
+    return <Release>{
       name: 'nomad',
       versions: {
         '0.1.0': {
@@ -27,6 +41,13 @@ test('the latest version is returned', async () => {
             }
           ],
           name: 'nomad',
+          shasums: 'nomad_0.1.0_SHA256SUMS',
+          shasums_signature: 'nomad_0.1.0_SHA256SUMS.sig',
+          shasums_signatures: [
+            'nomad_0.1.0_SHA256SUMS.348FFC4C.sig',
+            'nomad_0.1.0_SHA256SUMS.72D7468F.sig',
+            'nomad_0.1.0_SHA256SUMS.sig'
+          ],
           version: '0.1.0'
         },
         '0.1.1': {
@@ -41,6 +62,13 @@ test('the latest version is returned', async () => {
             }
           ],
           name: 'nomad',
+          shasums: 'nomad_0.1.1_SHA256SUMS',
+          shasums_signature: 'nomad_0.1.1_SHA256SUMS.sig',
+          shasums_signatures: [
+            'nomad_0.1.1_SHA256SUMS.348FFC4C.sig',
+            'nomad_0.1.1_SHA256SUMS.72D7468F.sig',
+            'nomad_0.1.1_SHA256SUMS.sig'
+          ],
           version: '0.1.1'
         }
       }
@@ -51,7 +79,7 @@ test('the latest version is returned', async () => {
 })
 
 // shows how the runner will run a javascript action with env / stdout protocol
-test('test runs', async () => {
+test('test runs', () => {
   process.env['INPUT_VERSION'] = '0.2.0'
   const np = process.execPath
   const ip = path.join(__dirname, '..', 'lib', 'main.js')
