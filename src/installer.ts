@@ -38,6 +38,8 @@ export async function installNomadVersion(
     ? path.join(tempDir, `nomad_${version}_${plat}_${architecture}.zip`)
     : undefined
 
+  const downloadUrl = `https://releases.hashicorp.com/nomad/${version}/nomad_${version}_${plat}_${architecture}.zip`
+  core.info(`Downloading ${downloadUrl}`)
   const downloadPath = await tc.downloadTool(
     `https://releases.hashicorp.com/nomad/${version}/nomad_${version}_${plat}_${architecture}.zip`,
     fileName
@@ -55,4 +57,21 @@ export async function installNomadVersion(
   )
   core.info(`Successfully cached Nomad to ${cachedDir}`)
   return cachedDir
+}
+
+export async function getNomad(
+  version: string,
+  plat: string,
+  architecture: string
+): Promise<string> {
+  // check cache
+  const toolPath = tc.find('nomad', version, architecture)
+  // If not found in cache, download
+  if (toolPath) {
+    core.info(`Found in cache @ ${toolPath}`)
+    return toolPath
+  }
+  core.info(`Attempting to download ${version}...`)
+  const nomadPath = await installNomadVersion(version, plat, architecture)
+  return nomadPath
 }

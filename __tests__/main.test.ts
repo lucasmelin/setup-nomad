@@ -1,31 +1,13 @@
-import * as utils from '../src/installer'
-import * as cp from 'child_process'
-import * as io from '@actions/io'
-import {expect, test, jest, beforeEach, afterAll} from '@jest/globals'
-import {getLatestVersion} from '../src/main'
-import path from 'path'
+import {expect, test, jest} from '@jest/globals'
 import {Release} from '../src/release'
 
-const cachePath = path.join(__dirname, 'CACHE')
-const tempPath = path.join(__dirname, 'TEMP')
-// Set temp and tool directories before importing (used to set global state)
-process.env['RUNNER_TEMP'] = tempPath
-process.env['RUNNER_TOOL_CACHE'] = cachePath
+jest.mock('../src/installer')
 
-beforeEach(async function () {
-  await io.rmRF(cachePath)
-  await io.rmRF(tempPath)
-  await io.mkdirP(cachePath)
-  await io.mkdirP(tempPath)
-})
-
-afterAll(async function () {
-  await io.rmRF(tempPath)
-  await io.rmRF(cachePath)
-})
+import {getLatestVersion} from '../src/version'
+import {getNomadIndex} from '../src/installer'
 
 test('the latest version is returned', async () => {
-  jest.spyOn(utils, 'getNomadIndex').mockImplementation(async () => {
+  ;(getNomadIndex as jest.Mock).mockImplementation(async () => {
     return <Release>{
       name: 'nomad',
       versions: {
@@ -76,15 +58,4 @@ test('the latest version is returned', async () => {
   })
   const release = await getLatestVersion()
   expect(release).toBe('0.1.1')
-})
-
-// shows how the runner will run a javascript action with env / stdout protocol
-test('test runs', () => {
-  process.env['INPUT_VERSION'] = '0.2.0'
-  const np = process.execPath
-  const ip = path.join(__dirname, '..', 'lib', 'main.js')
-  const options: cp.ExecFileSyncOptions = {
-    env: process.env
-  }
-  console.log(cp.execFileSync(np, [ip], options).toString())
 })

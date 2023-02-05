@@ -42,7 +42,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.installNomadVersion = exports.getNomadIndex = void 0;
+exports.getNomad = exports.installNomadVersion = exports.getNomadIndex = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const httpm = __importStar(__nccwpck_require__(6255));
 const tc = __importStar(__nccwpck_require__(7784));
@@ -73,6 +73,8 @@ function installNomadVersion(version, plat, architecture) {
         const fileName = isWindows
             ? path_1.default.join(tempDir, `nomad_${version}_${plat}_${architecture}.zip`)
             : undefined;
+        const downloadUrl = `https://releases.hashicorp.com/nomad/${version}/nomad_${version}_${plat}_${architecture}.zip`;
+        core.info(`Downloading ${downloadUrl}`);
         const downloadPath = yield tc.downloadTool(`https://releases.hashicorp.com/nomad/${version}/nomad_${version}_${plat}_${architecture}.zip`, fileName);
         core.info('Extracting Nomad...');
         const nomadExtractedFolder = yield tc.extractZip(downloadPath);
@@ -84,6 +86,21 @@ function installNomadVersion(version, plat, architecture) {
     });
 }
 exports.installNomadVersion = installNomadVersion;
+function getNomad(version, plat, architecture) {
+    return __awaiter(this, void 0, void 0, function* () {
+        // check cache
+        const toolPath = tc.find('nomad', version, architecture);
+        // If not found in cache, download
+        if (toolPath) {
+            core.info(`Found in cache @ ${toolPath}`);
+            return toolPath;
+        }
+        core.info(`Attempting to download ${version}...`);
+        const nomadPath = yield installNomadVersion(version, plat, architecture);
+        return nomadPath;
+    });
+}
+exports.getNomad = getNomad;
 
 
 /***/ }),
@@ -129,22 +146,20 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getLatestVersion = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const io = __importStar(__nccwpck_require__(7436));
-const semver = __importStar(__nccwpck_require__(5911));
-const tc = __importStar(__nccwpck_require__(7784));
-const installer_1 = __nccwpck_require__(1480);
 const child_process_1 = __importDefault(__nccwpck_require__(2081));
-const os_1 = __importDefault(__nccwpck_require__(2037));
 const path_1 = __importDefault(__nccwpck_require__(1017));
+const installer_1 = __nccwpck_require__(1480);
+const version_1 = __nccwpck_require__(8217);
+const system_1 = __nccwpck_require__(5785);
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            const version = yield resolveVersionInput();
-            const plat = getPlatform();
-            const architecture = getArchitecture();
-            const installDir = yield getNomad(version, plat, architecture);
+            const version = yield (0, version_1.resolveVersionInput)();
+            const plat = (0, system_1.getPlatform)();
+            const architecture = (0, system_1.getArchitecture)();
+            const installDir = yield (0, installer_1.getNomad)(version, plat, architecture);
             core.addPath(path_1.default.join(installDir));
             core.info('Added Nomad to the PATH');
             const nomadPath = yield io.which('nomad');
@@ -159,20 +174,21 @@ function run() {
     });
 }
 run();
-function getNomad(version, plat, architecture) {
-    return __awaiter(this, void 0, void 0, function* () {
-        // check cache
-        const toolPath = tc.find('nomad', version, architecture);
-        // If not found in cache, download
-        if (toolPath) {
-            core.info(`Found in cache @ ${toolPath}`);
-            return toolPath;
-        }
-        core.info(`Attempting to download ${version}...`);
-        const nomadPath = yield (0, installer_1.installNomadVersion)(version, plat, architecture);
-        return nomadPath;
-    });
-}
+
+
+/***/ }),
+
+/***/ 5785:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getArchitecture = exports.getPlatform = void 0;
+const os_1 = __importDefault(__nccwpck_require__(2037));
 function getPlatform() {
     const platform = os_1.default.platform();
     switch (platform) {
@@ -185,6 +201,7 @@ function getPlatform() {
             throw new Error(`Unsupported platform ${platform}`);
     }
 }
+exports.getPlatform = getPlatform;
 function getArchitecture() {
     const architecture = os_1.default.arch();
     switch (architecture) {
@@ -199,6 +216,64 @@ function getArchitecture() {
             throw new Error(`Unsupported architecture ${architecture}`);
     }
 }
+exports.getArchitecture = getArchitecture;
+
+
+/***/ }),
+
+/***/ 8217:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.resolveVersionInput = exports.getLatestVersion = void 0;
+const core = __importStar(__nccwpck_require__(2186));
+const semver = __importStar(__nccwpck_require__(5911));
+const installer_1 = __nccwpck_require__(1480);
+function getLatestVersion() {
+    return __awaiter(this, void 0, void 0, function* () {
+        const obj = yield (0, installer_1.getNomadIndex)();
+        const versions = Object.keys(obj.versions).filter(v => semver.valid(v) !== null);
+        const latest = versions
+            .filter(v => !semver.prerelease(v))
+            .sort((a, b) => semver.rcompare(a, b))[0];
+        return latest;
+    });
+}
+exports.getLatestVersion = getLatestVersion;
 function resolveVersionInput() {
     return __awaiter(this, void 0, void 0, function* () {
         const version = core.getInput('version');
@@ -214,17 +289,7 @@ function resolveVersionInput() {
         return getLatestVersion();
     });
 }
-function getLatestVersion() {
-    return __awaiter(this, void 0, void 0, function* () {
-        const obj = yield (0, installer_1.getNomadIndex)();
-        const versions = Object.keys(obj.versions).filter(v => semver.valid(v) !== null);
-        const latest = versions
-            .filter(v => !semver.prerelease(v))
-            .sort((a, b) => semver.rcompare(a, b))[0];
-        return latest;
-    });
-}
-exports.getLatestVersion = getLatestVersion;
+exports.resolveVersionInput = resolveVersionInput;
 
 
 /***/ }),
