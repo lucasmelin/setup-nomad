@@ -24,8 +24,9 @@ jobs:
         with:
           version: "1.4.0"
 
-      - run: |
-          if [["${{ steps.setup-nomad.outputs.nomad-version }}" == "1.4.0"]]; then
+      - name: assert version is 1.4.0
+        run: |
+          if [[ "${{ steps.setup-nomad.outputs.nomad-version }}" == "1.4.0" ]]; then
             echo "Expected Nomad version found"
             exit 0
           else
