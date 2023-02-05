@@ -25,10 +25,11 @@ jobs:
           version: "1.4.0"
 
       - run: |
-          if [["${{ steps.setup-nomad.outputs.nomad-version }} == "1.4.0"]]; then
+          if [["${{ steps.setup-nomad.outputs.nomad-version }}" == "1.4.0"]]; then
             echo "Expected Nomad version found"
             exit 0
           else
             echo "Unexpected Nomad version ${{ steps.setup-nomad.outputs.nomad-version }} not equal to 1.4.0"
+            exit 1
           fi
 
