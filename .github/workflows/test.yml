@@ -10,7 +10,7 @@ jobs:
   build: # make sure build/ci work properly
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - run: |
           npm install
       - run: |
@@ -20,5 +20,17 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: ./
+        id: setup-nomad
         with:
-          version: "latest"
+          version: "1.4.0"
+
+      - name: assert version is 1.4.0
+        run: |
+          if [[ "${{ steps.setup-nomad.outputs.nomad-version }}" == "1.4.0" ]]; then
+            echo "Expected Nomad version found"
+            exit 0
+          else
+            echo "Unexpected Nomad version ${{ steps.setup-nomad.outputs.nomad-version }} not equal to 1.4.0"
+            exit 1
+          fi
+
