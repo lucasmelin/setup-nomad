@@ -13,5 +13,5 @@ outputs:
   nomad-version:
     description: "The version of HashiCorp Nomad that was installed."
 runs:
-  using: "node16"
+  using: "node20"
   main: "dist/index.js"
