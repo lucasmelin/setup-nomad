@@ -4,6 +4,9 @@
 A GitHub Action to install a specific version of HashiCorp Nomad and add it to the PATH
 </p>
 
+> [!Warning]
+> This project is no longer maintained. For an alternative, please check out: https://github.com/hashicorp/setup-nomad
+
 ## Inputs
 
 ### `version`
